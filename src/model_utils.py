@@ -279,6 +279,37 @@ class BentReLU(nn.Module):
     def forward(self, x):
         return bent_relu(x, self.threshold_x)
 
+def clipped_relu(x, threshold_x):
+    return torch.where(x <= threshold_x,
+                       torch.zeros((1,), dtype=dtype, device=device),
+                       x)
+
+class ClippedReLU(nn.Module):
+    def __init__(self, threshold_x):
+        super().__init__()
+        self.threshold_x = threshold_x
+
+    def forward(self, x):
+        return clipped_relu(x, self.threshold_x)
+
+class RandomClippedReLU(nn.Module):
+    def __init__(self, threshold_mean, threshold_std):
+        super().__init__()
+        self.threshold_mean = threshold_mean
+        self.threshold_std = threshold_std
+
+    def forward(self, x):
+        if self.training:
+            threshold = torch.normal(mean=self.threshold_mean,
+                                     std=self.threshold_std,
+                                     size=(1,)).to(device)
+            # Prevent negative thresholds
+            threshold = torch.max(threshold, torch.zeros((1,), dtype=dtype, device=device))
+            return clipped_relu(x, threshold)
+        else:
+            return clipped_relu(x, self.threshold_mean)
+
+
 # Copied from https://discuss.pytorch.org/t/kronecker-product/3919/10
 def kronecker_product(A, B):
     return torch.einsum("ab,cd->acbd", A, B).view(A.size(0)*B.size(0),  A.size(1)*B.size(1))
