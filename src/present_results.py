@@ -25,8 +25,9 @@ def get_training_results_string(train_results: TrainResults):
 
     val2_from_best_val1 = tr.val2_accuracy_history[index_of_max(tr.val1_accuracy_history)]
     val1_from_best_val2 = tr.val1_accuracy_history[index_of_max(tr.val2_accuracy_history)]
+    crossvalidated_val = (val2_from_best_val1 + val1_from_best_val2) / 2
 
-    summary = (f"| {tr.model_name}, {train_params_string} | {best_val_for_model} | {val2_from_best_val1} | {val1_from_best_val2} | {epoch_with_best_val} |{round(train_for_best_val, 3)} "
+    summary = (f"| {tr.model_name}, {train_params_string} | {best_val_for_model} | {round(crossvalidated_val, 4)} | {epoch_with_best_val} |{round(train_for_best_val, 3)} "
                f"| {round(duality_gap_for_best_val, 3)} | {total_params(tr.model_history[0])} | {tr.train_accuracy_history} | {tr.val_accuracy_history}")
     return summary
 
